@@ -17,21 +17,26 @@ end
 puts "Creating two tables..."
 name = gets
 name.chomp!
-table1 = dynamo_db.tables.create('table1',10,5,
+table1 = dynamo_db.tables.create('table1',10,15,
     :hash_key => {:zipcode => :string} )
 sleep 1 while table1.status == :creating
-table2 = dynamo_db.tables.create('table2',10,5,
+table2 = dynamo_db.tables.create('table2',10,15,
    :hash_key => {:city => :string},
   :range_key => {:zipcode => :string}
-   )
+  )
 sleep 1 while table2.status == :creating
-table1.provision_throughput :read_capacity_units => 1, :write_capacity_units => 1
-table2.provision_throughput :read_capacity_units => 1, :write_capacity_units => 1
+#table1.provision_throughput :read_capacity_units => 1, :write_capacity_units => 1
+#table2.provision_throughput :read_capacity_units => 1, :write_capacity_units => 1
 
 puts "List of Tables:"
 for tables in dynamo_db.tables
   puts tables.name
 end
+
+table1 = dynamo_db.tables['table1']
+table1.load_schema
+table2 = dynamo_db.tables['table2']
+table2.load_schema
 puts
 name = gets
 name.chomp!
@@ -97,4 +102,114 @@ puts
 name = gets
 name.chomp!
 
-puts "Searching"
+puts "Table1: Search Zipcodes greater than 00610"
+
+items = table1.items.where(:zipcode).greater_than("00610")
+puts items.count
+for item in items
+  item.attributes.each_value do |value|
+    print value
+    print " "
+  end
+puts 
+end
+puts
+gets
+puts "Table2: Search City greater than ARECIBO"
+items = table2.items.where(:city).greater_than("ARECIBO")
+puts items.count
+
+for item in items
+  item.attributes.each_value do |value|
+    print value
+    print " "
+  end
+puts 
+end
+puts
+gets
+puts "Table2: Query city equal to ARECIBO"
+items = table2.items.query(:hash_value => 'ARECIBO')
+puts items.count
+
+for item in items
+  item.attributes.each_value do |value|
+    print value
+    print " "
+  end
+puts 
+end
+puts
+gets
+puts "Enter item key (zipcode) to be deleted from Table1:"
+destroy = gets
+destroy.chomp!
+
+item = table1.items.at(destroy)
+item.delete
+puts
+gets
+
+puts "Enter item keys (city and zipcode) to be deleted from Table2:"
+destroy_city = gets
+destroy_city.chomp!
+destroy_zip = gets
+destroy_zip.chomp!
+
+item = table2.items.at(destroy_city, destroy_zip)
+item.delete
+
+puts
+gets
+
+puts "Enter key (zipcode) to search for in Table1"
+key1 = gets
+key1.chomp!
+item = table1.items.at(key1)
+
+puts "Which field will be changed:"
+field = gets
+field.chomp!
+
+puts "Enter the replacement for #{field}:"
+replace = gets
+replace.chomp!
+
+item.attributes.update do |u|
+  u.set(field => replace)
+end
+puts
+gets
+
+puts "Enter keys (city and zipcode) to search for in Table2"
+key1 = gets
+key1.chomp!
+key2 = gets
+key2.chomp!
+item = table2.items.at(key1,key2)
+
+puts "Which field will be changed:"
+field = gets
+field.chomp!
+
+puts "Enter the replacement for #{field}:"
+replace = gets
+replace.chomp!
+
+item.attributes.update do |u|
+  u.set(field => replace)
+end
+puts 
+gets
+puts "Changing Read and Write Capacity to 1:"
+table1.provision_throughput :read_capacity_units => 1, :write_capacity_units => 1
+table2.provision_throughput :read_capacity_units => 1, :write_capacity_units => 1
+puts
+gets
+puts "Enter which Table to be deleted:"
+table = gets
+gets.chomp!
+
+table.delete
+
+
