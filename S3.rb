@@ -4,8 +4,8 @@ require 'aws-sdk'
 
 #AWS Credentials
 s3 = AWS::S3.new(
-  :access_key_id => 'AKIAIBWAOGCWCPIS6X4A',
-  :secret_access_key => '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'
+  :access_key_id => ENV['AMAZON_ACCESS_KEY_ID'],
+    :secret_access_key => ENV['AMAZON_SECRET_ACCESS_KEY']
 )
 
 #clears buckets for demo purpose

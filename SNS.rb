@@ -4,8 +4,8 @@ require 'aws-sdk'
 
 #AWS Credentials
 sns = AWS::SNS.new(
-  :access_key_id => 'AKIAIBWAOGCWCPIS6X4A',
-  :secret_access_key => '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'
+  :access_key_id => ENV['AMAZON_ACCESS_KEY_ID'],
+    :secret_access_key => ENV['AMAZON_SECRET_ACCESS_KEY']
 )
 
 #deletes everything for demo
@@ -47,7 +47,7 @@ name.chomp!
 #adding subscriptions
 #figure out error handling if already confirmed.
 puts "Adding subscriptions..."
-alpha.subscribe('http://cloud.comtor.org/csc470logger/logger')
+alpha.subscribe('http://cloud.comtor.org/csc470logger/logger?username=spencee1')
 #if(alpha.subscriptions.confirmation_authenticated? == false)
 alpha.subscribe('eddiespencer121@gmail.com')
 alpha.subscribe('peter.depasquale@gmail.com', :json => true)
@@ -58,11 +58,11 @@ name.chomp!
 
 puts "Topic attributes:"
 sns.topics.each do |topics|
-  puts "arn: #{topics.arn}"
-  puts "owner: #{topics.owner}"
-  puts "policy: #{topics.policy}"
-  puts "name: #{topics.display_name}"
-  puts "subscriptions confirmed: #{topics.num_subscriptions_confirmed}"
+  puts "SubscriptionARN: #{topics.arn}"
+  puts "Owner: #{topics.owner}"
+  puts "Policy: #{topics.policy}"
+  puts "Name: #{topics.display_name}"
+  puts "Subscriptions Confirmed: #{topics.num_subscriptions_confirmed}"
   puts
 end
 
@@ -75,9 +75,14 @@ name.chomp!
 puts "List of subscriptions:"
 sns.subscriptions.each do |subscriptions|
   puts "SubscriptionARN: #{subscriptions.arn}"
+  puts "Endpoint: #{subscriptions.endpoint}"
   puts "TopicARN: #{subscriptions.topic_arn}"
   puts "Owner: #{subscriptions.owner_id}"
+  if("#{subscriptions.arn}" != "PendingConfirmation")
   puts "Delivery Policy: #{subscriptions.delivery_policy_json}"
+  else
+    puts "Delivery Policy: PendingConfirmation"
+  end
   puts
 end
 
@@ -100,9 +105,8 @@ name.chomp!
 #cloud watch
 puts "Creating CloudWatch alert..."
 cw = AWS::CloudWatch.new(
-  :access_key_id => 'AKIAIBWAOGCWCPIS6X4A',
-  :secret_access_key => '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'
-
+  :access_key_id => ENV['AMAZON_ACCESS_KEY_ID'],
+    :secret_access_key => ENV['AMAZON_SECRET_ACCESS_KEY']
 )
 
 cw.alarms.create("alarm_name",

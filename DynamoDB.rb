@@ -4,14 +4,9 @@ require 'aws-sdk'
 require 'open-uri'
 #AWS Credentials
 dynamo_db = AWS::DynamoDB.new(
-  :access_key_id => 'AKIAIBWAOGCWCPIS6X4A',
-  :secret_access_key => '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'
+  :access_key_id => ENV['AMAZON_ACCESS_KEY_ID'],
+    :secret_access_key => ENV['AMAZON_SECRET_ACCESS_KEY']
 )
-
-puts "Deleting Tables..."
-for tables in dynamo_db.tables
-  tables.delete
-end
 
 #creating tables
 puts "Creating two tables..."
@@ -201,15 +196,14 @@ item.attributes.update do |u|
 end
 puts 
 gets
-puts "Changing Read and Write Capacity to 1:"
+puts "Changing Read and Write Capacity to 1"
 table1.provision_throughput :read_capacity_units => 1, :write_capacity_units => 1
 table2.provision_throughput :read_capacity_units => 1, :write_capacity_units => 1
 puts
 gets
-puts "Enter which Table to be deleted:"
-table = gets
-gets.chomp!
-
-table.delete
-
+puts "Deleting Tables...(wait for updates)"
+gets
+for tables in dynamo_db.tables
+  tables.delete
+end
 
